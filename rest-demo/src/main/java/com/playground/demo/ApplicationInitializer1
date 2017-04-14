@@ -1,0 +1,35 @@
+public class ApplicationInitializer1 implements WebApplicationInitializer {
+  @Override
+	public void onStartup(ServletContext servletContext) throws ServletException {
+  WebApplicationContext applicationContext = getContext(servletContext,CONFIG_PACKAGE_APPLICATION);
+  //WebApplicationContext applicationContext = getContext(servletContext,CONFIG_PACKAGE_APPLICATION);
+  
+  servletContext.addListener(new ContextLoaderListener(applicationContext));
+  
+  ServletRegistration.Dynamic registration = servletContext.addServlet("mvc-dispatcher", new DispatcherServlet(webApplicationContext));
+		registration.setLoadOnStartup(-1);		
+		registration.addMapping(WEB_MAPPING);
+		
+		ServletRegistration.Dynamic restService = servletContext.addServlet("rest-dispatcher", new DispatcherServlet(restApplicationContext));
+		restService.setLoadOnStartup(-1);		
+		restService.addMapping(REST_MAPPING);
+    
+    Dynamic securityFilter = servletContext.addFilter(AbstractSecurityWebApplicationInitializer.DEFAULT_FILTER_NAME, DelegatingFilterProxy.class);
+		securityFilter.addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
+
+  }
+  
+  private AnnotationConfigWebApplicationContext getContext(ServletContext servletContext, String configLocation) {
+		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+		context.setConfigLocation(configLocation);
+		context.setServletContext(servletContext);
+		return context;
+	}
+	
+	private AnnotationConfigWebApplicationContext getContext(ServletContext servletContext, Class<?> configClass) {
+		AnnotationConfigWebApplicationContext context = new AnnotationConfigWebApplicationContext();
+		context.register(configClass);
+		context.setServletContext(servletContext);
+		return context;
+	}
+}
